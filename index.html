@@ -60,6 +60,17 @@ pre { white-space: pre-wrap; }
 const logs = [];
 const weekTotals = {};
 
+// Load previously stored logs and totals
+try {
+  const storedLogs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
+  const storedTotals = JSON.parse(localStorage.getItem('serviceWeekTotals') || '{}');
+  logs.push(...storedLogs);
+  Object.assign(weekTotals, storedTotals);
+} catch (err) {
+  alert('Chyba při načítání uložených služeb: ' + err);
+}
+
+
 const dateInput = document.getElementById('date');
 const startInput = document.getElementById('timeStart');
 const endInput = document.getElementById('timeEnd');
@@ -68,6 +79,9 @@ const vehiclesGroup = document.getElementById('vehiclesGroup');
 const startBtn = document.getElementById('startBtn');
 const endBtn = document.getElementById('endBtn');
 const output = document.getElementById('logOutput');
+
+// Display stored services on load
+renderLogs();
 
 function minutesToHM(mins) {
   const h = Math.floor(mins / 60);
@@ -104,21 +118,53 @@ endBtn.addEventListener('click', () => {
   if (!date || !start || !end) return;
 
   const startDate = new Date(`${date}T${start}`);
-  const endDate = new Date(`${date}T${end}`);
-  let diff = (endDate - startDate) / 60000;
-  if (diff < 0) diff += 24*60;
+  let endDate = new Date(`${date}T${end}`);
 
-  const weekKey = getMonday(date);
-  weekTotals[weekKey] = (weekTotals[weekKey] || 0) + diff;
+  if (endDate <= startDate) {
+    const nextDay = new Date(startDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDate = nextDay.toISOString().slice(0,10);
 
-  logs.push({
-    date,
-    start,
-    end,
-    vehicles,
-    duration: diff,
-    weekTotal: weekTotals[weekKey]
-  });
+    const midnight = new Date(nextDay);
+    midnight.setHours(0,0,0,0);
+
+    const before = (midnight - startDate) / 60000;
+    const after = (new Date(`${nextDate}T${end}`) - midnight) / 60000;
+
+    const weekKey1 = getMonday(date);
+    weekTotals[weekKey1] = (weekTotals[weekKey1] || 0) + before;
+    logs.push({
+      date,
+      start,
+      end: '24:00',
+      vehicles,
+      duration: before,
+      weekTotal: weekTotals[weekKey1]
+    });
+
+    const weekKey2 = getMonday(nextDate);
+    weekTotals[weekKey2] = (weekTotals[weekKey2] || 0) + after;
+    logs.push({
+      date: nextDate,
+      start: '00:00',
+      end,
+      vehicles,
+      duration: after,
+      weekTotal: weekTotals[weekKey2]
+    });
+  } else {
+    const diff = (endDate - startDate) / 60000;
+    const weekKey = getMonday(date);
+    weekTotals[weekKey] = (weekTotals[weekKey] || 0) + diff;
+    logs.push({
+      date,
+      start,
+      end,
+      vehicles,
+      duration: diff,
+      weekTotal: weekTotals[weekKey]
+    });
+  }
 
   renderLogs();
 
@@ -135,21 +181,41 @@ function renderLogs() {
   output.textContent = logs.map(l =>
     `Datum: ${l.date}\nOd - do: ${l.start}–${l.end}\nPoužitá vozidla: ${l.vehicles}\nPočet hodin za danou službu: ${minutesToHM(l.duration)}\nCelkový počet hodin za týden: ${minutesToHM(l.weekTotal)}`
   ).join('\n\n');
+  try {
+    localStorage.setItem('serviceLogs', JSON.stringify(logs));
+    localStorage.setItem('serviceWeekTotals', JSON.stringify(weekTotals));
+  } catch (err) {
+    alert('Chyba při ukládání do úložiště: ' + err);
+  }
 }
 
-document.getElementById('copyBtn').addEventListener('click', () => {
-  navigator.clipboard.writeText(output.textContent);
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(output.textContent);
+    alert('Výstup byl zkopírován do schránky.');
+  } catch (err) {
+    alert('Zkopírování do schránky selhalo: ' + err);
+  }
 });
 
 const messageForm = document.getElementById('messageForm');
 messageForm.addEventListener('submit', e => {
   e.preventDefault();
   const msg = document.getElementById('message').value;
-  const stored = JSON.parse(localStorage.getItem('messages') || '[]');
+  let stored = [];
+  try {
+    stored = JSON.parse(localStorage.getItem('messages') || '[]');
+  } catch (err) {
+    alert('Chyba při načítání uložených zpráv: ' + err);
+  }
   stored.push({date: new Date().toISOString(), text: msg});
-  localStorage.setItem('messages', JSON.stringify(stored));
+  try {
+    localStorage.setItem('messages', JSON.stringify(stored));
+    alert('Zpráva uložena.');
+  } catch (err) {
+    alert('Zprávu se nepodařilo uložit: ' + err);
+  }
   messageForm.reset();
-  alert('Zpráva uložena.');
 });
 </script>
 </body>
