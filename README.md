@@ -17,6 +17,8 @@ Stačí otevřít soubor `index.html` v libovolném moderním prohlížeči. Nen
 
 Veškeré zadané služby se ukládají do `localStorage`, takže po znovuotevření stránky zůstanou zobrazené stejně jako dříve odeslané zprávy.
 
+Veškeré zadané služby se ukládají do `localStorage`, takže po znovuotevření stránky zůstanou zobrazené stejně jako dříve odeslané zprávy.
+
 ### Zpráva vedení
 Ve spodní části stránky je formulář pro odeslání zprávy vedení. Po odeslání se text uloží do `localStorage` a zůstane tak dostupný i po opětovném otevření stránky.
 
