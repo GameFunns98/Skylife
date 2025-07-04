@@ -14,6 +14,8 @@ Stačí otevřít soubor `index.html` v libovolném moderním prohlížeči. Nen
 3. Po ukončení směny stiskněte **Ukončit službu**. Pole *Do* se vyplní aktuálním časem, vypočítá se délka služby a přičte se k týdennímu součtu. V seznamu služeb se zobrazí textový výpis, který lze jedním kliknutím zkopírovat.
 4. Celkový počet hodin se v pondělí automaticky začne počítat od nuly.
 
+Veškeré zadané služby se ukládají do `localStorage`, takže po znovuotevření stránky zůstanou zobrazené stejně jako dříve odeslané zprávy.
+
 ### Zpráva vedení
 Ve spodní části stránky je formulář pro odeslání zprávy vedení. Po odeslání se text uloží do `localStorage` a zůstane tak dostupný i po opětovném otevření stránky.
 

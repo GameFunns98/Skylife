@@ -60,6 +60,15 @@ pre { white-space: pre-wrap; }
 const logs = [];
 const weekTotals = {};
 
+// Load previously stored logs and totals
+const storedLogs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
+const storedTotals = JSON.parse(localStorage.getItem('serviceWeekTotals') || '{}');
+logs.push(...storedLogs);
+Object.assign(weekTotals, storedTotals);
+
+// Display stored services on load
+renderLogs();
+
 const dateInput = document.getElementById('date');
 const startInput = document.getElementById('timeStart');
 const endInput = document.getElementById('timeEnd');
@@ -135,6 +144,8 @@ function renderLogs() {
   output.textContent = logs.map(l =>
     `Datum: ${l.date}\nOd - do: ${l.start}–${l.end}\nPoužitá vozidla: ${l.vehicles}\nPočet hodin za danou službu: ${minutesToHM(l.duration)}\nCelkový počet hodin za týden: ${minutesToHM(l.weekTotal)}`
   ).join('\n\n');
+  localStorage.setItem('serviceLogs', JSON.stringify(logs));
+  localStorage.setItem('serviceWeekTotals', JSON.stringify(weekTotals));
 }
 
 document.getElementById('copyBtn').addEventListener('click', () => {
